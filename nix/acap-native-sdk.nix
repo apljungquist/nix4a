@@ -10,13 +10,6 @@
 # digest with `docker manifest inspect --verbose <image>:<tag>`), set the
 # corresponding `sha256` to `lib.fakeHash`, run `nix build .#acap-native-sdk`,
 # and copy the hash Nix reports back into this file.
-#
-# Keep the version in sync with:
-# - .devcontainer/acap-native-sdk-12-aarch64/devcontainer.json
-# - .devcontainer/acap-native-sdk-12-armv7hf/devcontainer.json
-# - .github/workflows/fuzz.yaml
-# - .github/workflows/main.yaml
-# - bin/create-venv.sh
 {
   lib,
   stdenvNoCC,
@@ -83,26 +76,30 @@ stdenvNoCC.mkDerivation {
     for image in ${lib.escapeShellArgs images}; do
       tar -xf "$image" -C "$work" manifest.json
       for layer in $(jq -r '.[0].Layers[]' "$work/manifest.json"); do
+        tar -xOf "$image" "$layer" | tar -t > "$work/entries"
+        grep -q '^opt/axis/' "$work/entries" || continue
+
         # The SDK ships read-only directories, and the build runs as an
         # unprivileged user that cannot bypass directory permissions. Make every
         # directory extracted so far writable so the next layer can create
-        # entries inside them.
-        find "$out" -type d ! -perm -u+w -exec chmod u+w {} + 2>/dev/null || true
-        # `--strip-components 2` drops the leading `opt/axis/`, so the SDK
-        # contents end up directly under `$out` (as in the Makefile). Layers
-        # that don't touch `/opt/axis` make the inner tar exit non-zero, which
-        # is expected and ignored.
+        # entries inside them, and so that whiteouts can delete from them.
+        find "$out" -type d ! -perm -u+w -exec chmod u+w {} +
+
+        sed -n 's|^opt/axis/\(.*/\)\{0,1\}\.wh\.\([^/]*\)$|\1\2|p' "$work/entries" \
+          | while IFS= read -r victim; do rm -rf "$out/$victim"; done
+
         tar -xOf "$image" "$layer" \
           | tar -x -C "$out" \
               --strip-components 2 \
               --no-same-owner \
-              'opt/axis' 2>/dev/null || true
+              --delay-directory-restore \
+              --exclude='.wh.*' \
+              --exclude='opt/axis/acapsdk/sysroots/*/usr/lib/rustlib' \
+              --exclude='opt/axis/acapsdk/sysroots/*/usr/lib/rustlib/*' \
+              'opt/axis'
       done
     done
     rm -rf "$work"
-
-    # Drop any stray OverlayFS whiteout markers picked up while flattening.
-    find "$out" -name '.wh.*' -delete
 
     runHook postBuild
   '';
