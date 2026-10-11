@@ -16,14 +16,32 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
+        inherit (nixpkgs) lib;
+
         pkgs = import nixpkgs { inherit system; };
 
-        acap-native-sdk = pkgs.callPackage ./nix/acap-native-sdk.nix { };
+        releases = import ./nix/releases.nix;
+
+        archs = [
+          "armv7hf"
+          "aarch64"
+        ];
+
+        sdk =
+          release: targetArch: pkgs.callPackage ./nix/acap-native-sdk.nix { inherit release targetArch; };
+
+        packagesFor =
+          major: release:
+          lib.listToAttrs (
+            map (
+              targetArch: lib.nameValuePair "acap-native-sdk-${major}-${targetArch}" (sdk release targetArch)
+            ) archs
+          );
       in
       {
         formatter = pkgs.nixfmt-rfc-style;
 
-        packages = { inherit acap-native-sdk; };
+        packages = lib.concatMapAttrs packagesFor releases;
 
         checks = self.packages.${system};
 
