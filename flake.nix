@@ -16,32 +16,37 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        inherit (nixpkgs) lib;
-
         pkgs = import nixpkgs { inherit system; };
 
         releases = import ./nix/releases.nix;
 
-        archs = [
-          "armv7hf"
-          "aarch64"
-        ];
-
         sdk =
           release: targetArch: pkgs.callPackage ./nix/acap-native-sdk.nix { inherit release targetArch; };
-
-        packagesFor =
-          major: release:
-          lib.listToAttrs (
-            map (
-              targetArch: lib.nameValuePair "acap-native-sdk-${major}-${targetArch}" (sdk release targetArch)
-            ) archs
-          );
       in
       {
         formatter = pkgs.nixfmt-rfc-style;
 
-        packages = lib.concatMapAttrs packagesFor releases;
+        packages = rec {
+          acap-native-sdk-12-armv7hf = sdk releases."12" "armv7hf";
+          acap-native-sdk-12-aarch64 = sdk releases."12" "aarch64";
+          acap-native-sdk-12 = pkgs.callPackage ./nix/acap-native-sdk-all-arches.nix {
+            inherit (releases."12") version;
+            sdks = [
+              acap-native-sdk-12-armv7hf
+              acap-native-sdk-12-aarch64
+            ];
+          };
+
+          acap-native-sdk-13-armv7hf = sdk releases."13" "armv7hf";
+          acap-native-sdk-13-aarch64 = sdk releases."13" "aarch64";
+          acap-native-sdk-13 = pkgs.callPackage ./nix/acap-native-sdk-all-arches.nix {
+            inherit (releases."13") version;
+            sdks = [
+              acap-native-sdk-13-armv7hf
+              acap-native-sdk-13-aarch64
+            ];
+          };
+        };
 
         checks = self.packages.${system};
 

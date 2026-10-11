@@ -73,8 +73,7 @@ stdenvNoCC.mkDerivation {
   dontInstall = true;
 
   meta = {
-    description = "ACAP Native SDK for ${targetArch}, extracted from the official Docker images";
-    homepage = "https://github.com/AxisCommunications/acap-native-sdk";
+    description = "ACAP Native SDK for ${targetArch}";
     platforms = lib.platforms.all;
   };
 }
