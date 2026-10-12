@@ -46,6 +46,10 @@
               acap-native-sdk-13-aarch64
             ];
           };
+
+          acap-ssh-utils = pkgs.callPackage ./nix/acap-ssh-utils.nix { };
+          cargo-acap-build = pkgs.callPackage ./nix/cargo-acap-build.nix { };
+          cargo-acap-sdk = pkgs.callPackage ./nix/cargo-acap-sdk.nix { };
         };
 
         checks = self.packages.${system};
