@@ -50,6 +50,13 @@
           acap-ssh-utils = pkgs.callPackage ./nix/acap-ssh-utils.nix { };
           cargo-acap-build = pkgs.callPackage ./nix/cargo-acap-build.nix { };
           cargo-acap-sdk = pkgs.callPackage ./nix/cargo-acap-sdk.nix { };
+
+          cli4a = pkgs.callPackage ./nix/cli4a.nix { };
+          device-finder = pkgs.callPackage ./nix/device-finder.nix { };
+          device-inventory = pkgs.callPackage ./nix/device-inventory.nix { };
+          device-manager = pkgs.callPackage ./nix/device-manager.nix { };
+          fimage = pkgs.callPackage ./nix/fimage.nix { };
+          firmware-inventory = pkgs.callPackage ./nix/firmware-inventory.nix { };
         };
 
         checks = self.packages.${system};
