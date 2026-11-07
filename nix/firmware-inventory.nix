@@ -4,13 +4,13 @@
 }:
 rustPlatform.buildRustPackage {
   pname = "firmware-inventory";
-  version = "0.1.0+e7048af4";
+  version = "0.1.0+a61e47b3";
 
   src = fetchFromGitHub {
     owner = "apljungquist";
     repo = "rs4a";
-    rev = "e7048af49356ff7689d62a1c5aee2c4dd559141c";
-    hash = "sha256-g3c0Seo+OmaaSU3k33Yh9G3Zv7jsvxkWV6MU9l1ybFc=";
+    rev = "a61e47b37cbd30c825395fec6529420d859249de";
+    hash = "sha256-15ooEvDxuiwkcXEWnDbfpnTOAe9Ir9dZB9VDYuKayho=";
   };
 
   cargoHash = "sha256-n0PSYKKGncQQDEJ6R5OGH81xs54k0VCPVHpbeG0bkps=";
